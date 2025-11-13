@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Paint Party Lab - Product Selection</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f4f3ed">
 </head>
 <body>
     <style>
@@ -170,6 +172,14 @@ Paints are on us!</p>
                 }
             })
         })
+        // Register a service worker for PWA install/preview
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                // registration succeeded
+            }).catch(function(err) {
+                // registration failed
+            });
+        }
     </script>
 </body>
 </html>
