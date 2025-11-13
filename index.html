@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-type="html" data-identifier="2d1b9b4a-8d3c-4a2a-9b8c-89a3a9b1c7a1" data-title="Paint Party Lab - Product Selection" data-version="15" width="375" height="750">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Paint Party Lab - Product Selection</title>
+</head>
+<body>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f3ed; /* Exact background color from user */
+        }
+        #logo, #logo-small {
+           margin: 15px auto;
+        }
+        #product-selection, #qr-code-container {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+        }
+        #qr-code-container {
+            display: none;
+        }
+        .product-button {
+            background-color: #F37D23; /* Orange from logo */
+            border: none;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px auto;
+            cursor: pointer;
+            border-radius: 12px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease-in-out;
+        }
+        .product-button:hover {
+            transform: scale(1.02);
+        }
+        #back-button {
+            background-color: #2DBDBE; /* Teal from logo */
+        }
+        #qr-code {
+            width: 250px;
+            border-radius: 16px;
+            margin: 20px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        p {
+            color: #555;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+        #main-heading {
+          font-size: 1.5em;
+          margin-bottom: 5px;
+        }
+        #sub-heading{
+          margin-top: 5px;
+          font-size: 1em;
+        }
+        #payment-heading{
+            color: #D92B8F; /* Pink from logo */
+        }
+
+    </style>
+
+    <div id="product-selection" style="display:block">
+        <img id="logo" src="https://i.postimg.cc/MG3bNYTr/PPL-Logo-Final.png" alt="Paint Party Lab Logo" style="width:200px;">
+        <h1 id="main-heading" contenteditable="true">Welcome to Paint Party Lab
+
+</h1>
+        <p id="sub-heading" contenteditable="true">Select an item to customize.&nbsp;
+Paints are on us!</p>
+        <button id="tote-button" class="product-button">Tote Bag - Rs 699</button>
+        <button id="phone-holder-button" class="product-button">3D Phone Holder - Rs 599</button>
+    </div>
+
+    <div id="qr-code-container" style="display:none">
+        <img id="logo-small" src="https://i.postimg.cc/MG3bNYTr/PPL-Logo-Final.png" alt="Paint Party Lab Logo" style="width:150px;">
+        <h2 id="payment-heading" contenteditable="true">Scan to Purchase</h2>
+        <p id="selected-product" contenteditable="true"></p>
+        <img id="qr-code" src="https://i.postimg.cc/CKjGcV8C/IMG-6553.png" alt="Payment QR Code">
+        <button id="back-button" class="product-button">Back</button>
+    </div>
+    
+    <button id="saveEditsButton" class="save-edits-button" style="display: none;">Save edits</button>
+    <script>
+        function sendToParent(type, data) {
+            window.parent.postMessage({ type, data }, '*');
+        }
+
+        const productSelection = document.getElementById('product-selection');
+        const qrCodeContainer = document.getElementById('qr-code-container');
+        const toteButton = document.getElementById('tote-button');
+        const phoneHolderButton = document.getElementById('phone-holder-button');
+        const backButton = document.getElementById('back-button');
+        const selectedProductText = document.getElementById('selected-product');
+
+        function showQrCode(product, price) {
+            selectedProductText.innerText = 'You have selected: ' + product + ' for ' + price;
+            productSelection.style.display = 'none';
+            qrCodeContainer.style.display = 'block';
+        }
+
+        toteButton.addEventListener('click', () => showQrCode('Tote Bag', 'Rs 699'));
+        phoneHolderButton.addEventListener('click', () => showQrCode('3D Phone Holder', 'Rs 599'));
+
+        backButton.addEventListener('click', () => {
+            productSelection.style.display = 'block';
+            qrCodeContainer.style.display = 'none';
+        });
+
+        // Track edited elements and manage save.
+        const editedElements = [];
+        const saveButton = document.getElementById('saveEditsButton');
+        
+        function showSaveButton() {
+            if (saveButton) {
+                saveButton.style.display = 'block';
+            }
+        }
+        
+        function handleSaveEdits() {
+            sendToParent('SAVE_EDITS', editedElements);
+            // Hide button after saving.
+            if (saveButton) {
+                saveButton.style.display = 'none';
+            }
+            // Clear edited elements.
+            editedElements.length = 0;
+        }
+        
+        // Attach event listener to save button.
+        if (saveButton) {
+            saveButton.addEventListener('click', handleSaveEdits);
+        }
+        
+        // Track edits immediately as user types.
+        document.querySelectorAll('[contenteditable]').forEach(function(element){
+            element.addEventListener('input', function(event){
+                // Show save button on first edit.
+                showSaveButton();
+                
+                // Find existing edit for this element and update it, or add new one.
+                const existingIndex = editedElements.findIndex(function(el) { return el.id === event.target.id; });
+                const editData = {
+                    id: event.target.id,
+                    text: event.target.innerText
+                };
+                
+                if (existingIndex !== -1) {
+                    editedElements[existingIndex] = editData;
+                } else {
+                    editedElements.push(editData);
+                }
+            })
+        })
+    </script>
+</body>
+</html>
